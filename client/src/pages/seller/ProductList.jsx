@@ -21,42 +21,73 @@ const ProductList = () => {
     }
 
   return (
-        <div className="no-scrollbar flex-1 h-[95vh] overflow-y-scroll flex flex-col justify-between">
-            <div className="w-full md:p-10 p-4">
-                <h2 className="pb-4 text-lg font-medium">All Products</h2>
-                <div className="flex flex-col items-center max-w-4xl w-full overflow-hidden rounded-md bg-white border border-gray-500/20">
-                    <table className="md:table-auto table-fixed w-full overflow-hidden">
-                        <thead className="text-gray-900 text-sm text-left">
-                            <tr>
-                                <th className="px-4 py-3 font-semibold truncate">Product</th>
-                                <th className="px-4 py-3 font-semibold truncate">Category</th>
-                                <th className="px-4 py-3 font-semibold truncate hidden md:block">Selling Price</th>
-                                <th className="px-4 py-3 font-semibold truncate">In Stock</th>
+        <div className="no-scrollbar flex-1 animate-in fade-in duration-500">
+            <div className="mb-10">
+                <h1 className="text-3xl font-black text-heading uppercase tracking-tighter">Inventory Control</h1>
+                <p className="text-muted font-bold uppercase tracking-widest text-[10px] mt-1">Total {products.length} Products Catalogued</p>
+            </div>
+
+            <div className="w-full max-w-5xl rounded-[32px] overflow-hidden bg-card border border-border-main shadow-sm">
+                <div className="overflow-x-auto">
+                    <table className="w-full border-collapse">
+                        <thead>
+                            <tr className="bg-surface/50 border-b border-border-main">
+                                <th className="px-8 py-6 text-left text-[10px] font-black text-muted uppercase tracking-[0.2em]">Product Details</th>
+                                <th className="px-8 py-6 text-left text-[10px] font-black text-muted uppercase tracking-[0.2em]">Category</th>
+                                <th className="px-8 py-6 text-left text-[10px] font-black text-muted uppercase tracking-[0.2em]">Price</th>
+                                <th className="px-8 py-6 text-right text-[10px] font-black text-muted uppercase tracking-[0.2em]">Availability</th>
                             </tr>
                         </thead>
-                        <tbody className="text-sm text-gray-500">
+                        <tbody className="divide-y divide-border-soft">
                             {products.map((product) => (
-                                <tr key={product._id} className="border-t border-gray-500/20">
-                                    <td className="md:px-4 pl-2 md:pl-4 py-3 flex items-center space-x-3 truncate">
-                                        <div className="border border-gray-300 rounded overflow-hidden">
-                                            <img src={product.image[0]} alt="Product" className="w-16" />
+                                <tr key={product._id} className="group hover:bg-surface/30 transition-colors">
+                                    <td className="px-8 py-5">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-16 h-16 bg-surface rounded-xl border border-border-soft flex items-center justify-center p-2 group-hover:scale-105 transition-transform">
+                                                <img src={product.image[0]} alt="Product" className="max-w-full max-h-full object-contain drop-shadow-sm" />
+                                            </div>
+                                            <div className="flex flex-col">
+                                                <span className="text-sm font-black text-heading group-hover:text-accent transition-colors">{product.name}</span>
+                                                <span className="text-[10px] text-muted font-bold tracking-widest uppercase">ID: {product._id.slice(-6)}</span>
+                                            </div>
                                         </div>
-                                        <span className="truncate max-sm:hidden w-full">{product.name}</span>
                                     </td>
-                                    <td className="px-4 py-3">{product.category}</td>
-                                    <td className="px-4 py-3 max-sm:hidden">{currency}{product.offerPrice}</td>
-                                    <td className="px-4 py-3">
-                                        <label className="relative inline-flex items-center cursor-pointer text-gray-900 gap-3">
-                                            <input onClick={()=> toggleStock(product._id, !product.inStock)} checked={product.inStock} type="checkbox" className="sr-only peer"/>
-                                            <div className="w-12 h-7 bg-slate-300 rounded-full peer peer-checked:bg-blue-600 transition-colors duration-200"></div>
-                                            <span className="dot absolute left-1 top-1 w-5 h-5 bg-white rounded-full transition-transform duration-200 ease-in-out peer-checked:translate-x-5"></span>
-                                        </label>
+                                    <td className="px-8 py-5">
+                                        <span className="text-xs font-black text-body uppercase tracking-wider bg-surface px-3 py-1 rounded-full border border-border-soft">
+                                            {product.category}
+                                        </span>
+                                    </td>
+                                    <td className="px-8 py-5">
+                                        <div className="flex flex-col">
+                                            <span className="text-lg font-black text-accent">{currency}{product.offerPrice}</span>
+                                            <span className="text-[10px] text-muted line-through">{currency}{product.price}</span>
+                                        </div>
+                                    </td>
+                                    <td className="px-8 py-5 text-right">
+                                        <button 
+                                            onClick={()=> toggleStock(product._id, !product.inStock)}
+                                            className={`relative inline-flex items-center h-8 w-14 rounded-full cursor-pointer transition-all duration-300 outline-none
+                                                ${product.inStock ? 'bg-accent shadow-lg shadow-accent/20' : 'bg-muted/20'}
+                                            `}
+                                        >
+                                            <span className={`inline-block h-6 w-6 rounded-full bg-white shadow-md transform transition-transform duration-300
+                                                ${product.inStock ? 'translate-x-7' : 'translate-x-1'}
+                                            `} />
+                                        </button>
                                     </td>
                                 </tr>
                             ))}
                         </tbody>
                     </table>
                 </div>
+
+                {products.length === 0 && (
+                    <div className="flex flex-col items-center justify-center py-32 space-y-4">
+                        <div className="text-4xl">📦</div>
+                        <h2 className="text-xl font-black text-heading uppercase tracking-tight">No products listed</h2>
+                        <p className="text-muted text-sm font-bold uppercase tracking-widest">Start by adding your first product to the catalogue.</p>
+                    </div>
+                )}
             </div>
         </div>
     );

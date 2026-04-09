@@ -2,15 +2,148 @@
 
 @import "tailwindcss";
 
-*{
+*:not([data-theme="dark"] *) {
   font-family: "Outfit", sans-serif;
+  transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), color 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @theme {
   --color-primary: #4fbf8b;
   --color-primary-dull: #44ae7c;
+  
+  /* Semantic Theme Tokens */
+  --color-page: var(--bg-page);
+  --color-surface: var(--bg-surface);
+  --color-card: var(--bg-card);
+  --color-heading: var(--text-heading);
+  --color-body: var(--text-body);
+  --color-muted: var(--text-muted);
+  --color-border-main: var(--border-main);
+  --color-border-soft: var(--border-soft);
+  --color-accent: var(--accent);
 }
 
-.no-scrollbar::--webkit-scrollbar{
+.no-scrollbar::-webkit-scrollbar {
   display: none;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   🎨 PREMIUM DESIGN SYSTEM TOKENS
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+:root {
+  --bg-page:        #ffffff;
+  --bg-surface:     #f8fafc;
+  --bg-card:        #ffffff;
+  --text-heading:   #0f172a;
+  --text-body:      #334155;
+  --text-muted:     #64748b;
+  --border-main:    #e2e8f0;
+  --border-soft:    #f1f5f9;
+  --accent:         #4fbf8b;
+  --shadow-sm:      0 1px 2px rgba(0,0,0,0.05);
+  --shadow-md:      0 4px 6px -1px rgba(0,0,0,0.1);
+}
+
+[data-theme="dark"] {
+  /* Premium Dark Palette: Deep Charcoal / Graphite / Soft Midnight */
+  --bg-page:        #0d0f11;
+  --bg-surface:     #16191d;
+  --bg-card:        #1e2227;
+  --text-heading:   #f8fafc;
+  --text-body:      #94a3b8;
+  --text-muted:     #64748b;
+  --border-main:    rgba(255, 255, 255, 0.1);
+  --border-soft:    rgba(255, 255, 255, 0.05);
+  --accent:         #4fbf8b;
+  --shadow-sm:      0 4px 12px rgba(0,0,0,0.25);
+  --shadow-md:      0 8px 32px rgba(0,0,0,0.4);
+
+  color-scheme: dark;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   🌙 GLOBAL PREMIUM DARK OVERRIDES
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+body {
+  background-color: var(--bg-page);
+  color: var(--text-body);
+  transition: background-color 0.3s ease;
+}
+
+/* Semantic Selection Fixes - These target general structures without breaking light mode */
+[data-theme="dark"] h1, 
+[data-theme="dark"] h2, 
+[data-theme="dark"] h3, 
+[data-theme="dark"] h4 { 
+  color: var(--text-heading) !important; 
+}
+
+[data-theme="dark"] p, 
+[data-theme="dark"] span:not([class*="text-primary"]), 
+[data-theme="dark"] div:not([class*="bg-primary"]) {
+  color: var(--text-body);
+}
+
+/* Premium Navbar Fix */
+[data-theme="dark"] nav {
+  background-color: rgba(22, 25, 29, 0.8) !important;
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-main) !important;
+}
+
+/* Premium Component Overrides */
+[data-theme="dark"] input, 
+[data-theme="dark"] textarea, 
+[data-theme="dark"] select {
+  background-color: var(--bg-surface) !important;
+  color: var(--text-heading) !important;
+  border: 1px solid var(--border-main) !important;
+}
+
+[data-theme="dark"] input::placeholder {
+  color: var(--text-muted) !important;
+}
+
+/* Premium Card Hierarchy */
+[data-theme="dark"] [class*="card"], 
+[data-theme="dark"] [class*="ProductCard"], 
+[data-theme="dark"] [class*="category-card"] {
+  background-color: var(--bg-card) !important;
+  border: 1px solid var(--border-soft) !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+[data-theme="dark"] [class*="card"]:hover {
+  background-color: var(--bg-surface) !important;
+  border-color: var(--accent) !important;
+  box-shadow: var(--shadow-md) !important;
+}
+
+/* Premium Hero Overlay Fix */
+[data-theme="dark"] [class*="hero"] > div {
+  background: linear-gradient(to right, rgba(13, 15, 17, 0.95), rgba(13, 15, 17, 0.2)) !important;
+}
+
+/* Footer Fix */
+[data-theme="dark"] footer, 
+[data-theme="dark"] .bg-primary\/10 {
+  background-color: var(--bg-surface) !important;
+  border-top: 1px solid var(--border-main) !important;
+}
+
+/* Badge Fix */
+[data-theme="dark"] [class*="badge"] {
+  background-color: rgba(79, 191, 139, 0.15) !important;
+  color: var(--accent) !important;
+}
+
+/* Scrollbar Enhancement */
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background: var(--border-main);
+  border-radius: 10px;
+}
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
 }

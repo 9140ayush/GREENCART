@@ -41,7 +41,7 @@ const AddProduct = () => {
                 setCategory('');
                 setPrice('');
                 setOfferPrice('');
-                setFiles('');
+                setFiles([]);
             } else {
                 toast.error(data.message)
             }
@@ -51,13 +51,19 @@ const AddProduct = () => {
     }
 
   return (
-        <div className="no-scrollbar flex-1 h-[95vh] overflow-y-scroll flex flex-col justify-between" >
-            <form onSubmit={onSubmitHandler} className="md:p-10 p-4 space-y-5 max-w-lg">
-                <div>
-                    <p className="text-base font-medium">Product Image</p>
-                    <div className="flex flex-wrap items-center gap-3 mt-2">
+        <div className="no-scrollbar flex-1 max-w-4xl animate-in fade-in duration-500" >
+            <div className="mb-10">
+                <h1 className="text-3xl font-black text-heading uppercase tracking-tighter">Add New Product</h1>
+                <p className="text-muted font-bold uppercase tracking-widest text-[10px] mt-1">Inventory Management • Step 1 of 1</p>
+            </div>
+
+            <form onSubmit={onSubmitHandler} className="space-y-8 max-w-2xl">
+                {/* Image Upload Section */}
+                <div className="bg-card border border-border-main p-8 rounded-[32px] shadow-sm">
+                    <p className="text-sm font-black text-heading uppercase tracking-widest mb-6">Product Imagery</p>
+                    <div className="flex flex-wrap items-center gap-4">
                         {Array(4).fill('').map((_, index) => (
-                            <label key={index} htmlFor={`image${index}`}>
+                            <label key={index} htmlFor={`image${index}`} className="group cursor-pointer">
                                 <input
                                 accept="image/*" 
                                 onChange={(e)=>{
@@ -67,43 +73,88 @@ const AddProduct = () => {
                                 }}
                                 type="file" id={`image${index}`} hidden 
                                 />
-                                <img className="max-w-24 cursor-pointer" src={files[index] ? URL.createObjectURL(files[index]) : assets.upload_area} alt="uploadArea" width={100} height={100} />
+                                <div className="w-28 h-28 bg-surface border-2 border-dashed border-border-main rounded-2xl flex items-center justify-center overflow-hidden group-hover:border-accent transition-all relative">
+                                    {files[index] ? (
+                                        <img className="w-full h-full object-cover" src={URL.createObjectURL(files[index])} alt="preview" />
+                                    ) : (
+                                        <div className="flex flex-col items-center gap-2">
+                                            <img className="w-8 opacity-40 dark:invert" src={assets.upload_area} alt="upload" />
+                                            <span className="text-[10px] font-black text-muted uppercase">Upload</span>
+                                        </div>
+                                    )}
+                                </div>
                             </label>
                         ))}
                     </div>
                 </div>
-                <div className="flex flex-col gap-1 max-w-md">
-                    <label className="text-base font-medium" htmlFor="product-name">Product Name</label>
-                    <input onChange={(e)=> setName(e.target.value)} value={name}
-                    id="product-name" type="text" placeholder="Type here" className="outline-none md:py-2.5 py-2 px-3 rounded border border-gray-500/40" required />
-                </div>
-                <div className="flex flex-col gap-1 max-w-md">
-                    <label className="text-base font-medium" htmlFor="product-description">Product Description</label>
-                    <textarea onChange={(e)=> setDescription(e.target.value)} value={description} id="product-description" rows={4} className="outline-none md:py-2.5 py-2 px-3 rounded border border-gray-500/40 resize-none" placeholder="Type here"></textarea>
-                </div>
-                <div className="w-full flex flex-col gap-1">
-                    <label className="text-base font-medium" htmlFor="category">Category</label>
-                    <select  onChange={(e)=> setCategory(e.target.value)} value={category}
-                    id="category" className="outline-none md:py-2.5 py-2 px-3 rounded border border-gray-500/40">
-                        <option value="">Select Category</option>
-                        {categories.map((item, index)=>(
-                            <option key={index} value={item.path}>{item.path}</option>
-                        ))}
-                    </select>
-                </div>
-                <div className="flex items-center gap-5 flex-wrap">
-                    <div className="flex-1 flex flex-col gap-1 w-32">
-                        <label className="text-base font-medium" htmlFor="product-price">Product Price</label>
-                        <input  onChange={(e)=> setPrice(e.target.value)} value={price}
-                        id="product-price" type="number" placeholder="0" className="outline-none md:py-2.5 py-2 px-3 rounded border border-gray-500/40" required />
+
+                {/* Main Details Section */}
+                <div className="bg-card border border-border-main p-8 rounded-[32px] shadow-sm space-y-6">
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-black text-muted uppercase tracking-widest px-1" htmlFor="product-name">Product Name</label>
+                        <input 
+                            onChange={(e)=> setName(e.target.value)} value={name}
+                            id="product-name" type="text" placeholder="Organic Green Apples" 
+                            className="w-full bg-surface border border-border-main rounded-2xl py-4 px-6 focus:ring-4 focus:ring-accent/10 focus:border-accent/40 outline-none transition-all font-bold text-heading placeholder:text-muted/50" 
+                            required 
+                        />
                     </div>
-                    <div className="flex-1 flex flex-col gap-1 w-32">
-                        <label className="text-base font-medium" htmlFor="offer-price">Offer Price</label>
-                        <input  onChange={(e)=> setOfferPrice(e.target.value)} value={offerPrice}
-                        id="offer-price" type="number" placeholder="0" className="outline-none md:py-2.5 py-2 px-3 rounded border border-gray-500/40" required />
+
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-black text-muted uppercase tracking-widest px-1" htmlFor="product-description">Product Description</label>
+                        <textarea 
+                            onChange={(e)=> setDescription(e.target.value)} value={description} 
+                            id="product-description" rows={4} 
+                            className="w-full bg-surface border border-border-main rounded-2xl py-4 px-6 focus:ring-4 focus:ring-accent/10 focus:border-accent/40 outline-none transition-all font-bold text-heading placeholder:text-muted/50 resize-none leading-relaxed" 
+                            placeholder="Fresh from the farm. Naturally sweet and crunchy..."
+                        ></textarea>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-muted uppercase tracking-widest px-1" htmlFor="category">Category</label>
+                            <select  
+                                onChange={(e)=> setCategory(e.target.value)} value={category}
+                                id="category" 
+                                className="w-full bg-surface border border-border-main rounded-2xl py-4 px-6 focus:ring-4 focus:ring-accent/10 focus:border-accent/40 outline-none transition-all font-bold text-heading cursor-pointer appearance-none"
+                                style={{backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%234FBF8B' stroke-width='3'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 1.25rem center', backgroundSize: '1.25rem'}}
+                            >
+                                <option value="">Select Category</option>
+                                {categories.map((item, index)=>(
+                                    <option key={index} value={item.path}>{item.path}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-muted uppercase tracking-widest px-1" htmlFor="product-price">Normal Price</label>
+                                <input  
+                                    onChange={(e)=> setPrice(e.target.value)} value={price}
+                                    id="product-price" type="number" placeholder="0.00" 
+                                    className="w-full bg-surface border border-border-main rounded-2xl py-4 px-6 focus:ring-4 focus:ring-accent/10 focus:border-accent/40 outline-none transition-all font-bold text-heading" 
+                                    required 
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-muted uppercase tracking-widest px-1" htmlFor="offer-price">Offer Price</label>
+                                <input  
+                                    onChange={(e)=> setOfferPrice(e.target.value)} value={offerPrice}
+                                    id="offer-price" type="number" placeholder="0.00" 
+                                    className="w-full bg-surface border border-border-main rounded-2xl py-4 px-6 focus:ring-4 focus:ring-accent/10 focus:border-accent/40 outline-none transition-all font-bold text-accent" 
+                                    required 
+                                />
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <button className="px-8 py-2.5 bg-primary text-white font-medium rounded cursor-pointer">ADD</button>
+
+                <div className="flex items-center justify-end gap-6 pt-4">
+                    <button type="button" onClick={() => navigate('/seller/product-list')} className="text-muted font-black uppercase tracking-widest text-xs hover:text-heading transition-colors cursor-pointer">Discard Draft</button>
+                    <button className="px-12 py-5 bg-accent text-white font-black rounded-2xl shadow-xl shadow-accent/20 hover:bg-primary-dull hover:-translate-y-1 active:translate-y-0 transition-all uppercase tracking-[0.15em] text-sm cursor-pointer">
+                        Publish Product
+                    </button>
+                </div>
             </form>
         </div>
     );

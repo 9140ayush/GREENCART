@@ -1,6 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { dummyProducts } from "../assets/assets";
 import toast from "react-hot-toast";
 import axios from "axios";
 
@@ -112,7 +111,7 @@ export const AppContextProvider = ({children})=>{
         let totalAmount= 0;
         for(const items in cartItems) {
             let itemInfo = products.find((product)=> product._id === items);
-            if(cartItems[items] > 0) {
+            if(itemInfo && cartItems[items] > 0) {
                 totalAmount += itemInfo.offerPrice * cartItems[items]
             }
         }
@@ -134,7 +133,7 @@ export const AppContextProvider = ({children})=>{
                     toast.error(data.message)
                 }
             } catch (error) {
-                toast.error(error.message)
+                // toast.error(error.message)
             }
         }
 
