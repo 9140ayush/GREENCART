@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import { NavLink } from 'react-router-dom'
 import { assets } from '../assets/assets'
 import {useAppContext} from '../context/AppContext'
@@ -6,8 +6,15 @@ import toast from 'react-hot-toast'
 import DarkModeToggle from './DarkModeToggle'
 
 const Navbar = () => {
-    const [open, setOpen] = React.useState(false)
-    const {user, setUser, setShowUserLogin, navigate, setSearchQuery, searchQuery, getCartCount, axios} = useAppContext();
+    const [open, setOpen] = useState(false)
+    const {user, setUser, setShowUserLogin, navigate, setSearchQuery, searchQuery, getCartCount, axios, products} = useAppContext();
+    
+    // Live Search States
+    const [searchTerm, setSearchTerm] = useState('')
+    const [suggestions, setSuggestions] = useState([])
+    const [showSuggestions, setShowSuggestions] = useState(false)
+    const [activeIndex, setActiveIndex] = useState(-1)
+    const suggestionsRef = useRef(null)
 
     const logout = async ()=>{
         try {
@@ -22,14 +29,63 @@ const Navbar = () => {
         } catch (error) {
             toast.error(error.message)
         }
-        
     }
 
-    useEffect(()=>{
-        if(searchQuery.length > 0) {
-            navigate("/products")
+    // Handle Search Logic with Debounce
+    useEffect(() => {
+        const delayDebounceFn = setTimeout(() => {
+            if (searchTerm.trim().length > 0) {
+                const filtered = products.filter(product => 
+                    product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    product.category.toLowerCase().includes(searchTerm.toLowerCase())
+                ).slice(0, 8); // Limit results to 8
+                
+                setSuggestions(filtered)
+                setShowSuggestions(true)
+            } else {
+                setSuggestions([])
+                setShowSuggestions(false)
+            }
+        }, 300)
+
+        return () => clearTimeout(delayDebounceFn)
+    }, [searchTerm, products])
+
+    // Close on click outside
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (suggestionsRef.current && !suggestionsRef.current.contains(event.target)) {
+                setShowSuggestions(false)
+            }
         }
-    },[searchQuery])
+        document.addEventListener('mousedown', handleClickOutside)
+        return () => document.removeEventListener('mousedown', handleClickOutside)
+    }, [])
+
+    const handleSelectSuggestion = (product) => {
+        setSearchTerm(product.name)
+        setSearchQuery(product.name)
+        setShowSuggestions(false)
+        navigate(`/products/${product.category.toLowerCase()}/${product._id}`)
+    }
+
+    const handleSearchSubmit = (e) => {
+        if (e.key === 'Enter') {
+            if (activeIndex >= 0 && suggestions[activeIndex]) {
+                handleSelectSuggestion(suggestions[activeIndex])
+            } else if (searchTerm.trim()) {
+                setSearchQuery(searchTerm)
+                setShowSuggestions(false)
+                navigate('/products')
+            }
+        } else if (e.key === 'ArrowDown') {
+            setActiveIndex(prev => (prev < suggestions.length - 1 ? prev + 1 : prev))
+        } else if (e.key === 'ArrowUp') {
+            setActiveIndex(prev => (prev > 0 ? prev - 1 : prev))
+        } else if (e.key === 'Escape') {
+            setShowSuggestions(false)
+        }
+    }
 
     return (
         <nav className="flex items-center justify-between px-6 md:px-16 lg:px-24 xl:px-32 py-4 border-b border-border-main bg-card relative sticky top-0 z-[100]">
@@ -51,9 +107,56 @@ const Navbar = () => {
                 <NavLink to='/products' className="text-body hover:text-accent transition-colors">All Product</NavLink>
                 <NavLink to='/contact' className="text-body hover:text-accent transition-colors">Contact</NavLink>
 
-                <div className="hidden lg:flex items-center text-sm gap-2 border border-border-main px-4 rounded-full bg-surface focus-within:border-accent/50 focus-within:ring-2 focus-within:ring-accent/10 transition-all">
-                    <input onChange={(e)=> setSearchQuery(e.target.value)} className="py-1.5 w-full bg-transparent outline-none placeholder-muted text-heading" type="text" placeholder="Search products" />
-                    <img src={assets.search_icon} alt="search" className='w-4 h-4 dark:invert opacity-60'/>
+                {/* Enhanced Search Bar */}
+                <div className="relative group/search" ref={suggestionsRef}>
+                    <div className="hidden lg:flex items-center text-sm gap-2 border border-border-main px-4 rounded-full bg-surface focus-within:border-accent/50 focus-within:ring-4 focus-within:ring-accent/5 transition-all w-64 xl:w-80 shadow-inner">
+                        <input 
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            onKeyDown={handleSearchSubmit}
+                            onFocus={() => searchTerm.trim() && setShowSuggestions(true)}
+                            className="py-1.5 w-full bg-transparent outline-none placeholder-muted text-heading font-medium" 
+                            type="text" 
+                            placeholder="Search fresh items..." 
+                        />
+                        <img src={assets.search_icon} alt="search" className='w-4 h-4 dark:invert opacity-60'/>
+                    </div>
+
+                    {/* Autocomplete Dropdown */}
+                    {showSuggestions && (
+                        <div className="absolute top-12 left-0 w-full bg-card border border-border-main shadow-2xl rounded-2xl overflow-hidden z-[150] animate-in fade-in slide-in-from-top-2 duration-300">
+                            {suggestions.length > 0 ? (
+                                <ul className="py-2 divide-y divide-border-soft">
+                                    {suggestions.map((item, index) => (
+                                        <li 
+                                            key={item._id}
+                                            onClick={() => handleSelectSuggestion(item)}
+                                            onMouseEnter={() => setActiveIndex(index)}
+                                            className={`px-4 py-3 flex items-center gap-4 cursor-pointer transition-all
+                                                ${index === activeIndex ? 'bg-surface text-accent' : 'text-body hover:bg-surface/50'}
+                                            `}
+                                        >
+                                            <div className="w-10 h-10 bg-surface rounded-xl p-1.5 border border-border-soft flex items-center justify-center shrink-0">
+                                                <img src={item.image[0]} className="max-w-full max-h-full object-contain" alt="" />
+                                            </div>
+                                            <div className="flex flex-col overflow-hidden">
+                                                <span className="text-sm font-black truncate text-heading leading-tight">{item.name}</span>
+                                                <span className="text-[9px] text-muted uppercase font-black tracking-[0.15em]">{item.category}</span>
+                                            </div>
+                                            {index === activeIndex && (
+                                                <span className="ml-auto text-[10px] font-bold text-accent opacity-60">SELECT</span>
+                                            )}
+                                        </li>
+                                    ))}
+                                </ul>
+                            ) : (
+                                <div className="p-8 text-center space-y-2">
+                                    <p className="text-2xl">🥦</p>
+                                    <p className="text-[10px] font-black text-muted uppercase tracking-[0.2em]">No items found for "{searchTerm}"</p>
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
 
                 <DarkModeToggle />
