@@ -1,149 +1,342 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap');
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   GREENCART 2026 — PREMIUM DESIGN SYSTEM
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=DM+Sans:ital,opsz,wght@0,9..40,300..700;1,9..40,300..700&display=swap');
 
 @import "tailwindcss";
 
-*:not([data-theme="dark"] *) {
-  font-family: "Outfit", sans-serif;
-  transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), color 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
+/* ── Tailwind v4 Theme Tokens ─────────────────── */
 @theme {
-  --color-primary: #4fbf8b;
-  --color-primary-dull: #44ae7c;
-  
-  /* Semantic Theme Tokens */
-  --color-page: var(--bg-page);
-  --color-surface: var(--bg-surface);
-  --color-card: var(--bg-card);
-  --color-heading: var(--text-heading);
-  --color-body: var(--text-body);
-  --color-muted: var(--text-muted);
-  --color-border-main: var(--border-main);
-  --color-border-soft: var(--border-soft);
-  --color-accent: var(--accent);
+  /* Primary — Deep Forest */
+  --color-primary:        #3BB77E;
+  --color-primary-dull:   #29A56C;
+  --color-primary-pale:   #D8EDDE;
+
+  /* Accent — Vivid Green */
+  --color-accent:         #3BB77E;
+  --color-accent-light:   #E8F6F0;
+
+  /* Neutral */
+  --color-bg:             #FAFAF8;
+  --color-surface:        #FFFFFF;
+  --color-surface-2:      #F4F4F1;
+  --color-border:         #E6E6E1;
+
+  /* Text */
+  --color-text-primary:   #1A1A17;
+  --color-text-muted:     #6B6B60;
+  --color-text-light:     #A0A094;
+
+  /* Status */
+  --color-success:        #29A56C;
+  --color-warning:        #F59E0B; /* Keeping standard warning color instead of mustard */
+  --color-danger:         #C0392B;
+
+  /* Semantic aliases (keep backward compat with existing components) */
+  --color-page:           var(--bg-page);
+  --color-card:           var(--bg-card);
+  --color-heading:        var(--text-heading);
+  --color-body:           var(--text-body);
+  --color-muted:          var(--text-muted);
+  --color-border-main:    var(--border-main);
+  --color-border-soft:    var(--border-soft);
+
+  /* Spacing */
+  --space-xs:   4px;
+  --space-sm:   8px;
+  --space-md:   16px;
+  --space-lg:   24px;
+  --space-xl:   40px;
+  --space-2xl:  64px;
+
+  /* Typography */
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-body:    'DM Sans', system-ui, sans-serif;
+  --font-mono:    'JetBrains Mono', 'Fira Code', monospace;
+
+  /* Radius */
+  --radius-sm:   6px;
+  --radius-md:   12px;
+  --radius-lg:   20px;
+  --radius-pill: 999px;
 }
 
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   🎨 PREMIUM DESIGN SYSTEM TOKENS
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-
+/* ── CSS Custom Properties (Light Mode) ─────────── */
 :root {
-  --bg-page:        #ffffff;
-  --bg-surface:     #f8fafc;
-  --bg-card:        #ffffff;
-  --text-heading:   #0f172a;
-  --text-body:      #334155;
-  --text-muted:     #64748b;
-  --border-main:    #e2e8f0;
-  --border-soft:    #f1f5f9;
-  --accent:         #4fbf8b;
-  --shadow-sm:      0 1px 2px rgba(0,0,0,0.05);
-  --shadow-md:      0 4px 6px -1px rgba(0,0,0,0.1);
+  /* Background layers */
+  --bg-page:        #FAFAF8;
+  --bg-surface:     #FFFFFF;
+  --bg-card:        #FFFFFF;
+
+  /* Text */
+  --text-heading:   #1A1A17;
+  --text-body:      #3D3D35;
+  --text-muted:     #6B6B60;
+
+  /* Border */
+  --border-main:    #E6E6E1;
+  --border-soft:    #F0F0EB;
+
+  /* Accent */
+  --accent:         #3BB77E;
+
+  /* Shadows */
+  --shadow-sm:      0 1px 3px rgba(0,0,0,0.06);
+  --shadow-md:      0 4px 16px rgba(0,0,0,0.08);
+  --shadow-lg:      0 12px 40px rgba(0,0,0,0.10);
 }
 
+/* ── Dark Mode ───────────────────────────────────── */
 [data-theme="dark"] {
-  /* Premium Dark Palette: Deep Charcoal / Graphite / Soft Midnight */
-  --bg-page:        #0d0f11;
-  --bg-surface:     #16191d;
-  --bg-card:        #1e2227;
-  --text-heading:   #f8fafc;
-  --text-body:      #94a3b8;
-  --text-muted:     #64748b;
-  --border-main:    rgba(255, 255, 255, 0.1);
-  --border-soft:    rgba(255, 255, 255, 0.05);
-  --accent:         #4fbf8b;
-  --shadow-sm:      0 4px 12px rgba(0,0,0,0.25);
-  --shadow-md:      0 8px 32px rgba(0,0,0,0.4);
+  --bg-page:        #0E1712;
+  --bg-surface:     #162016;
+  --bg-card:        #1E2B1E;
+
+  --text-heading:   #F0EEE8;
+  --text-body:      #B8B8A8;
+  --text-muted:     #7A7A68;
+
+  --border-main:    rgba(255,255,255,0.10);
+  --border-soft:    rgba(255,255,255,0.05);
+
+  --accent:         #3BB77E;
+
+  --shadow-sm:      0 4px 12px rgba(0,0,0,0.35);
+  --shadow-md:      0 8px 32px rgba(0,0,0,0.50);
 
   color-scheme: dark;
 }
 
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   🌙 GLOBAL PREMIUM DARK OVERRIDES
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+/* ── Global Base ─────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
 
 body {
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
   background-color: var(--bg-page);
   color: var(--text-body);
-  transition: background-color 0.3s ease;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* Semantic Selection Fixes - These target general structures without breaking light mode */
-[data-theme="dark"] h1, 
-[data-theme="dark"] h2, 
-[data-theme="dark"] h3, 
-[data-theme="dark"] h4 { 
-  color: var(--text-heading) !important; 
+/* ── Typography ──────────────────────────────────── */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  color: var(--text-heading);
+  line-height: 1.2;
+  font-weight: 600;
+  transition: color 0.3s ease;
 }
 
-[data-theme="dark"] p, 
-[data-theme="dark"] span:not([class*="text-primary"]), 
-[data-theme="dark"] div:not([class*="bg-primary"]) {
-  color: var(--text-body);
+h1 { font-size: clamp(2rem, 5vw, 4rem); letter-spacing: -0.02em; }
+h2 { font-size: clamp(1.5rem, 3vw, 2.5rem); letter-spacing: -0.01em; }
+h3 { font-size: clamp(1.2rem, 2vw, 1.75rem); }
+
+/* ── Utilities ───────────────────────────────────── */
+.font-display    { font-family: var(--font-display); }
+.font-body       { font-family: var(--font-body); }
+.text-label      { font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ── Dark Mode overrides (keeping backward compat) ── */
+[data-theme="dark"] h1,
+[data-theme="dark"] h2,
+[data-theme="dark"] h3,
+[data-theme="dark"] h4 {
+  color: var(--text-heading) !important;
 }
 
-/* Premium Navbar Fix */
 [data-theme="dark"] nav {
-  background-color: rgba(22, 25, 29, 0.8) !important;
-  backdrop-filter: blur(12px);
+  background-color: rgba(14, 23, 18, 0.92) !important;
+  backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--border-main) !important;
 }
 
-/* Premium Component Overrides */
-[data-theme="dark"] input, 
-[data-theme="dark"] textarea, 
+[data-theme="dark"] input,
+[data-theme="dark"] textarea,
 [data-theme="dark"] select {
   background-color: var(--bg-surface) !important;
   color: var(--text-heading) !important;
   border: 1px solid var(--border-main) !important;
 }
 
-[data-theme="dark"] input::placeholder {
-  color: var(--text-muted) !important;
+[data-theme="dark"] input::placeholder,
+[data-theme="dark"] textarea::placeholder {
+  color: rgba(255, 255, 255, 0.4) !important;
 }
 
-/* Premium Card Hierarchy */
-[data-theme="dark"] [class*="card"], 
-[data-theme="dark"] [class*="ProductCard"], 
-[data-theme="dark"] [class*="category-card"] {
-  background-color: var(--bg-card) !important;
-  border: 1px solid var(--border-soft) !important;
-  box-shadow: var(--shadow-sm) !important;
-}
-
-[data-theme="dark"] [class*="card"]:hover {
-  background-color: var(--bg-surface) !important;
-  border-color: var(--accent) !important;
-  box-shadow: var(--shadow-md) !important;
-}
-
-/* Premium Hero Overlay Fix */
-[data-theme="dark"] [class*="hero"] > div {
-  background: linear-gradient(to right, rgba(13, 15, 17, 0.95), rgba(13, 15, 17, 0.2)) !important;
-}
-
-/* Footer Fix */
-[data-theme="dark"] footer, 
-[data-theme="dark"] .bg-primary\/10 {
+[data-theme="dark"] footer {
   background-color: var(--bg-surface) !important;
   border-top: 1px solid var(--border-main) !important;
 }
 
-/* Badge Fix */
-[data-theme="dark"] [class*="badge"] {
-  background-color: rgba(79, 191, 139, 0.15) !important;
-  color: var(--accent) !important;
+/* ── Animations & Keyframes ──────────────────────── */
+@keyframes chatSlideUp {
+  from { opacity: 0; transform: translateY(20px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0)    scale(1); }
 }
 
-/* Scrollbar Enhancement */
-[data-theme="dark"] ::-webkit-scrollbar-thumb {
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes heartPop {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.4); }
+  100% { transform: scale(1); }
+}
+
+@keyframes badgePulse {
+  0%, 100% { transform: scale(1); }
+  50%       { transform: scale(1.15); }
+}
+
+@keyframes countDown {
+  from { width: 100%; }
+  to   { width:   0%; }
+}
+
+/* ── Scroll Animation Classes ────────────────────── */
+.animate-on-scroll {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.45s ease, transform 0.45s ease;
+}
+.animate-on-scroll.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── Skeleton Loading ────────────────────────────── */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--border-soft) 25%,
+    var(--bg-surface)  50%,
+    var(--border-soft) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: var(--radius-md);
+}
+
+/* ── Product Card ────────────────────────────────── */
+.product-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.product-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+.product-card:hover .product-image {
+  transform: scale(1.05);
+}
+.product-image {
+  transition: transform 0.5s ease;
+}
+
+/* ── Chatbot ─────────────────────────────────────── */
+.chat-bubble-bot {
+  background: var(--bg-surface);
+  color: var(--text-body);
+  border-radius: 16px 16px 16px 4px;
+}
+.chat-bubble-user {
+  background: #3BB77E;
+  color: #fff;
+  border-radius: 16px 16px 4px 16px;
+}
+
+/* ── Announcement Bar ────────────────────────────── */
+.announcement-bar {
+  background: #3BB77E;
+  color: #fff;
+  text-align: center;
+  font-size: 13px;
+  font-family: var(--font-body);
+  font-weight: 500;
+  padding: 8px 16px;
+  transition: max-height 0.3s ease, padding 0.3s ease;
+  overflow: hidden;
+}
+.announcement-bar.hidden {
+  max-height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+/* ── Filter Sidebar ──────────────────────────────── */
+.filter-sidebar {
+  width: 260px;
+  flex-shrink: 0;
+}
+
+/* ── Price Range Slider ──────────────────────────── */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: 999px;
   background: var(--border-main);
-  border-radius: 10px;
+  outline: none;
+  cursor: pointer;
 }
-[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
-  background: var(--accent);
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #3BB77E;
+  border: 2px solid white;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  cursor: pointer;
 }
+
+/* ── Tracking Timeline ───────────────────────────── */
+.tracking-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+.tracking-step::before {
+  content: '';
+  width: 2px;
+  background: var(--border-main);
+  flex-shrink: 0;
+}
+.tracking-step.done .step-dot {
+  background: #29A56C;
+  border-color: #29A56C;
+}
+
+/* ── Loyalty Points Badge ────────────────────────── */
+.points-badge {
+  background: linear-gradient(135deg, #3BB77E, #29A56C);
+  color: #FFFFFF;
+  font-weight: 700;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+/* ── Scrollbar ───────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-main); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #3BB77E; }

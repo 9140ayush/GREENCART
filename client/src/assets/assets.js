@@ -22,6 +22,7 @@ import black_arrow_icon from "./black_arrow_icon.svg";
 import white_arrow_icon from "./white_arrow_icon.svg";
 import main_banner_bg from "./main_banner_bg.png";
 import main_banner_bg_sm from "./main_banner_bg_sm.png";
+import new_hero_image from "./new_hero_image.png";
 import bottom_banner_image from "./bottom_banner_image.png";
 import bottom_banner_image_sm from "./bottom_banner_image_sm.png";
 import add_address_iamge from "./add_address_image.svg";
@@ -94,6 +95,7 @@ export const assets = {
   white_arrow_icon,
   main_banner_bg,
   main_banner_bg_sm,
+  new_hero_image,
   bottom_banner_image,
   bottom_banner_image_sm,
   add_address_iamge,

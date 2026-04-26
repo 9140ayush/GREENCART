@@ -1,122 +1,278 @@
 import React, { useEffect, useState } from 'react'
 import { useAppContext } from '../context/AppContext'
 
-const MyOrders = () => {
-    const [myOrders, setMyOrders] = useState([])
-    const {currency, axios, user} = useAppContext();
+const STATUS_STEPS = ['Order Placed', 'Confirmed', 'Packed', 'Out for Delivery', 'Delivered']
 
-    const fetchMyOrders = async ()=>{
+const statusColor = (status) => {
+    if (!status) return { bg: 'var(--border-soft)', text: 'var(--text-muted)' }
+    const s = status.toLowerCase()
+    if (s.includes('delivered')) return { bg: '#D8EDDE', text: '#29A56C' }
+    if (s.includes('transit') || s.includes('delivery')) return { bg: '#FDF3DC', text: '#8B6000' }
+    if (s.includes('cancel')) return { bg: '#fdecea', text: '#C0392B' }
+    if (s.includes('placed')) return { bg: '#E8F4EC', text: '#3BB77E' }
+    return { bg: 'var(--border-soft)', text: 'var(--text-muted)' }
+}
+
+const MyOrders = () => {
+    const { axios, currency, user, navigate } = useAppContext()
+    const [orders, setOrders] = useState([])
+    const [loading, setLoading] = useState(true)
+    const [expanded, setExpanded] = useState(null)
+
+    const fetchOrders = async () => {
         try {
-            const {data} = await axios.get('/api/order/user');
-            if(data.success) {
-                setMyOrders(data.orders);
+            const { data } = await axios.get('/api/order/user')
+            if (data.success) {
+                setOrders(data.orders)
             }
         } catch (error) {
-            console.log(error);
+            console.error(error)
+        } finally {
+            setLoading(false)
         }
     }
 
-    useEffect(()=>{
-        if(user) {
-            fetchMyOrders();
-        }
-    },[user])
+    useEffect(() => {
+        if (user) fetchOrders()
+    }, [user])
 
-  return (
-    <div className='mt-16 pb-24 min-h-screen animate-in fade-in duration-700'>
-       {/* Page Heading */}
-       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
-            <div className='flex flex-col w-max'>
-                <h1 className='text-3xl md:text-4xl font-black text-heading uppercase tracking-tighter'>My Orders</h1>
-                <div className='w-full h-1 bg-accent rounded-full mt-1'></div>
-            </div>
-            
-            <p className="text-muted font-bold uppercase tracking-widest text-xs bg-surface px-4 py-2 rounded-full border border-border-soft">
-                Found {myOrders.length} Previous Harvests
-            </p>
+    if (loading) return (
+        <div style={{ padding: '64px 0', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {Array(3).fill(0).map((_, i) => (
+                <div key={i} className="skeleton" style={{ height: '100px', borderRadius: '16px' }} />
+            ))}
         </div>
+    )
 
-       <div className="space-y-12">
-            {myOrders.map((order, index)=>(
-                <div key={index} className='bg-card border border-border-main rounded-[32px] overflow-hidden shadow-2xl shadow-black/5 hover:shadow-black/20 transition-all duration-500 group'>
-                    {/* Order Metadata Header */}
-                    <div className='bg-surface/50 px-8 py-5 border-b border-border-soft flex flex-wrap justify-between items-center gap-6'>
-                        <div className="space-y-1">
-                            <p className='text-[10px] font-black text-muted uppercase tracking-[0.2em]'>Order Identity</p>
-                            <p className="text-sm font-bold text-heading">#{order._id}</p>
-                        </div>
-                        <div className="space-y-1">
-                            <p className='text-[10px] font-black text-muted uppercase tracking-[0.2em]'>Payment Mode</p>
-                            <span className="text-sm font-black text-accent bg-accent/10 px-3 py-1 rounded-full border border-accent/20 uppercase tracking-widest leading-none block w-max mt-1">{order.paymentType}</span>
-                        </div>
-                        <div className="space-y-1">
-                            <p className='text-[10px] font-black text-muted uppercase tracking-[0.2em]'>Fulfillment Amount</p>
-                            <p className="text-xl font-black text-heading">{currency}{order.amount}</p>
-                        </div>
-                    </div>
+    return (
+        <div style={{ paddingTop: '32px', paddingBottom: '80px' }}>
+            <h1 style={{
+                fontFamily: 'var(--font-display)',
+                fontSize: 'clamp(1.8rem, 3vw, 2.4rem)',
+                fontWeight: 700, color: 'var(--text-heading)',
+                margin: '0 0 8px',
+                letterSpacing: '-0.02em',
+            }}>My Orders</h1>
+            <p style={{ color: 'var(--text-muted)', fontSize: '15px', marginBottom: '32px' }}>
+                {orders.length} order{orders.length !== 1 ? 's' : ''} placed
+            </p>
 
-                    {/* Order Items List */}
-                    <div className="divide-y divide-border-soft">
-                        {order.items.map((item, i)=>(
-                            <div 
-                                key={i}
-                                className='p-8 flex flex-col md:flex-row md:items-center justify-between gap-10 hover:bg-surface/30 transition-colors'
-                            >
-                                <div className='flex items-center gap-8'>
-                                    <div className='bg-surface border border-border-soft p-4 rounded-2xl group-hover:scale-105 transition-transform duration-500'>
-                                        <img src={item.product.image[0]} alt="" className='w-20 h-20 object-contain drop-shadow-xl'/>
+            {orders.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '80px 0' }}>
+                    <p style={{ fontSize: '48px', marginBottom: '16px' }}>📦</p>
+                    <h3 style={{ fontFamily: 'var(--font-display)', color: 'var(--text-heading)', marginBottom: '8px' }}>No orders yet</h3>
+                    <p style={{ color: 'var(--text-muted)', marginBottom: '24px' }}>Start shopping to see your orders here.</p>
+                    <button onClick={() => navigate('/products')} style={{
+                        padding: '12px 32px', background: '#3BB77E', color: '#fff',
+                        border: 'none', borderRadius: '999px', cursor: 'pointer', fontWeight: 700, fontSize: '14px',
+                    }}>Shop Now</button>
+                </div>
+            ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    {orders.map((order, oi) => {
+                        const isOpen = expanded === oi
+                        const sc = statusColor(order.status)
+
+                        return (
+                            <div key={order._id || oi} style={{
+                                background: 'var(--bg-card)',
+                                border: '1px solid var(--border-main)',
+                                borderRadius: '20px',
+                                overflow: 'hidden',
+                                transition: 'box-shadow 0.2s',
+                                boxShadow: isOpen ? 'var(--shadow-md)' : 'none',
+                            }}>
+                                {/* Order Header */}
+                                <div
+                                    onClick={() => setExpanded(isOpen ? null : oi)}
+                                    style={{
+                                        display: 'flex', alignItems: 'center', gap: '16px',
+                                        padding: '18px 22px', cursor: 'pointer',
+                                        flexWrap: 'wrap',
+                                    }}
+                                >
+                                    {/* Product thumbnails */}
+                                    <div style={{ display: 'flex', gap: '-8px' }}>
+                                        {(order.items || []).slice(0, 3).map((item, i) => (
+                                            <div key={i} style={{
+                                                width: '48px', height: '48px',
+                                                background: 'var(--bg-surface)',
+                                                borderRadius: '10px',
+                                                border: '2px solid var(--bg-card)',
+                                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                marginLeft: i > 0 ? '-10px' : 0,
+                                                zIndex: 3 - i,
+                                                position: 'relative',
+                                            }}>
+                                                {item.product?.image?.[0] && (
+                                                    <img src={item.product.image[0]} alt="" loading="lazy"
+                                                        style={{ maxWidth: '34px', maxHeight: '34px', objectFit: 'contain' }} />
+                                                )}
+                                            </div>
+                                        ))}
+                                        {order.items?.length > 3 && (
+                                            <div style={{
+                                                width: '48px', height: '48px',
+                                                background: '#D8EDDE',
+                                                borderRadius: '10px', border: '2px solid var(--bg-card)',
+                                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                marginLeft: '-10px', zIndex: 0,
+                                                fontSize: '12px', fontWeight: 700, color: '#3BB77E',
+                                            }}>+{order.items.length - 3}</div>
+                                        )}
                                     </div>
-                                    <div className='space-y-1.5'>
-                                        <h2 className='text-xl font-black text-heading leading-tight group-hover:text-accent transition-colors'>{item.product.name}</h2>
-                                        <div className="flex items-center gap-3">
-                                            <p className="text-[10px] font-black text-muted uppercase tracking-widest">{item.product.category}</p>
-                                            <span className="w-1.5 h-1.5 bg-border-soft rounded-full"></span>
-                                            <p className="text-xs font-bold text-body">Quantity: <span className="text-accent">{item.quantity || "1"}</span></p>
-                                        </div>
-                                    </div>
-                                </div>
 
-                                <div className='flex flex-wrap md:flex-col items-center md:items-end gap-6 md:gap-3'>
-                                    <div className="space-y-1 text-right">
-                                        <p className='text-[10px] font-black text-muted uppercase tracking-[0.2em]'>Order Status</p>
-                                        <p className="text-sm font-bold text-heading flex items-center gap-2">
-                                            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                                            {order.status}
+                                    {/* Order info */}
+                                    <div style={{ flex: 1, minWidth: '160px' }}>
+                                        <p style={{ fontWeight: 700, fontSize: '15px', color: 'var(--text-heading)', margin: '0 0 2px' }}>
+                                            {(order.items || []).length} item{order.items?.length !== 1 ? 's' : ''}
+                                            {order.items?.[0]?.product?.name && ` · ${order.items[0].product.name}${order.items.length > 1 ? '...' : ''}`}
+                                        </p>
+                                        <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: 0 }}>
+                                            {order.createdAt
+                                                ? new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+                                                : ''}
+                                            {' · '}{order.paymentType}
                                         </p>
                                     </div>
-                                    <div className="space-y-1 text-right">
-                                        <p className='text-[10px] font-black text-muted uppercase tracking-[0.2em]'>Harvest Date</p>
-                                        <p className="text-sm font-bold text-body">{new Date(order.createdAt).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+
+                                    {/* Amount */}
+                                    <div style={{ textAlign: 'right', marginLeft: 'auto' }}>
+                                        <p style={{
+                                            fontFamily: 'var(--font-display)',
+                                            fontSize: '18px', fontWeight: 700,
+                                            color: '#3BB77E', margin: '0 0 4px',
+                                        }}>{currency}{order.amount}</p>
+
+                                        {/* Status badge */}
+                                        <span style={{
+                                            display: 'inline-block',
+                                            background: sc.bg, color: sc.text,
+                                            fontSize: '11px', fontWeight: 700,
+                                            padding: '3px 10px', borderRadius: '999px',
+                                        }}>{order.status || 'Processing'}</span>
                                     </div>
+
+                                    {/* Expand chevron */}
+                                    <span style={{
+                                        color: 'var(--text-muted)', fontSize: '18px',
+                                        transition: 'transform 0.2s',
+                                        transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                                        flexShrink: 0,
+                                    }}>⌄</span>
                                 </div>
 
-                                <div className="text-right flex flex-col items-end">
-                                    <p className='text-[10px] font-black text-muted uppercase tracking-[0.2em] mb-1'>Item Total</p>
-                                    <p className='text-2xl font-black text-accent'>
-                                        {currency}{item.product.offerPrice * item.quantity}
-                                    </p>
-                                </div>
+                                {/* Expanded Order Detail */}
+                                {isOpen && (
+                                    <div style={{ borderTop: '1px solid var(--border-soft)', padding: '20px 22px', animation: 'fadeInUp 0.2s ease' }}>
+
+                                        {/* Tracking Timeline */}
+                                        {order.trackingTimeline?.length > 0 ? (
+                                            <div style={{ marginBottom: '24px' }}>
+                                                <p style={{ fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)', marginBottom: '16px' }}>
+                                                    Tracking Timeline
+                                                </p>
+                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                                    {order.trackingTimeline.map((step, si) => (
+                                                        <div key={si} style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+                                                            <div style={{
+                                                                width: '10px', height: '10px', borderRadius: '50%',
+                                                                background: '#29A56C', flexShrink: 0, marginTop: '4px',
+                                                            }} />
+                                                            <div>
+                                                                <p style={{ fontWeight: 700, fontSize: '14px', color: 'var(--text-heading)', margin: '0 0 2px' }}>{step.status}</p>
+                                                                {step.note && <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '0 0 2px' }}>{step.note}</p>}
+                                                                <p style={{ fontSize: '11px', color: 'var(--text-light)', margin: 0 }}>
+                                                                    {step.timestamp ? new Date(step.timestamp).toLocaleString('en-IN') : ''}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            /* Static progress bar */
+                                            <div style={{ marginBottom: '24px' }}>
+                                                <p style={{ fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)', marginBottom: '16px' }}>Order Progress</p>
+                                                <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                                                    {STATUS_STEPS.map((step, si) => {
+                                                        const isCompleted = order.status === 'Delivered' || si === 0
+                                                        return (
+                                                            <React.Fragment key={step}>
+                                                                <div style={{
+                                                                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px',
+                                                                    flex: si < STATUS_STEPS.length - 1 ? 'none' : 1,
+                                                                }}>
+                                                                    <div style={{
+                                                                        width: '28px', height: '28px', borderRadius: '50%',
+                                                                        background: isCompleted ? '#29A56C' : 'var(--border-main)',
+                                                                        color: '#fff',
+                                                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                                        fontSize: '12px', fontWeight: 700, flexShrink: 0,
+                                                                    }}>{isCompleted ? '✓' : si + 1}</div>
+                                                                    <span style={{ fontSize: '10px', fontWeight: 600, color: isCompleted ? '#3BB77E' : 'var(--text-muted)', textAlign: 'center', whiteSpace: 'nowrap' }}>
+                                                                        {step}
+                                                                    </span>
+                                                                </div>
+                                                                {si < STATUS_STEPS.length - 1 && (
+                                                                    <div style={{ flex: 1, height: '2px', background: isCompleted ? '#29A56C' : 'var(--border-main)', borderRadius: '999px', marginBottom: '20px' }} />
+                                                                )}
+                                                            </React.Fragment>
+                                                        )
+                                                    })}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Items List */}
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                            {(order.items || []).map((item, ii) => (
+                                                <div key={ii} style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                                                    {item.product?.image?.[0] && (
+                                                        <div style={{
+                                                            width: '48px', height: '48px',
+                                                            background: 'var(--bg-surface)', borderRadius: '10px',
+                                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                            flexShrink: 0,
+                                                        }}>
+                                                            <img src={item.product.image[0]} alt="" loading="lazy"
+                                                                style={{ maxWidth: '36px', maxHeight: '36px', objectFit: 'contain' }} />
+                                                        </div>
+                                                    )}
+                                                    <div style={{ flex: 1 }}>
+                                                        <p style={{ fontWeight: 600, color: 'var(--text-heading)', fontSize: '14px', margin: '0 0 2px' }}>
+                                                            {item.product?.name || 'Product'}
+                                                        </p>
+                                                        <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: 0 }}>
+                                                            Qty: {item.quantity}
+                                                        </p>
+                                                    </div>
+                                                    <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, color: '#3BB77E', fontSize: '15px' }}>
+                                                        {currency}{item.product?.offerPrice ? item.product.offerPrice * item.quantity : '—'}
+                                                    </span>
+                                                </div>
+                                            ))}
+                                        </div>
+
+                                        {/* Address */}
+                                        {order.address && (
+                                            <div style={{
+                                                marginTop: '16px', paddingTop: '16px',
+                                                borderTop: '1px solid var(--border-soft)',
+                                                fontSize: '13px', color: 'var(--text-muted)',
+                                            }}>
+                                                📍 Delivering to: {order.address.street}, {order.address.city}, {order.address.state}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
                             </div>
-                        ))}
-                    </div>
+                        )
+                    })}
                 </div>
-            ))}
-       </div>
-
-       {myOrders.length === 0 && (
-            <div className="flex flex-col items-center justify-center py-48 space-y-8 animate-in fade-in zoom-in duration-500 text-center">
-                <div className="w-32 h-32 bg-surface rounded-[40px] flex items-center justify-center text-6xl shadow-inner border border-border-soft">🏺</div>
-                <div className="space-y-2">
-                    <h2 className="text-3xl font-black text-heading uppercase tracking-tighter">Your order vault is empty</h2>
-                    <p className="text-muted font-bold uppercase tracking-widest text-xs">Start your first harvest today</p>
-                </div>
-                <button onClick={() => window.location.href = '/products'} className="px-12 py-4 bg-accent text-white font-black rounded-full shadow-xl shadow-accent/20 hover:scale-105 active:scale-95 transition-all text-sm uppercase tracking-widest">
-                    Catalogue
-                </button>
-            </div>
-       )}
-    </div>
-  )
+            )}
+        </div>
+    )
 }
 
 export default MyOrders

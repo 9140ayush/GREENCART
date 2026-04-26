@@ -82,52 +82,52 @@ const Contact = () => {
         <div className="p-8 md:p-12 border-b md:border-b-0 md:border-r border-border-soft bg-surface/30">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-muted uppercase tracking-widest px-1">Full Name</label>
+              <label className="text-[10px] font-black text-muted dark:text-gray-300 uppercase tracking-widest px-1">Full Name</label>
               <input
                 type="text"
                 name="name"
                 placeholder="Enter your name"
                 value={formData.name}
                 onChange={handleChange}
-                className="w-full bg-surface dark:bg-page border border-border-soft rounded-2xl py-4 px-6 focus:ring-4 focus:ring-accent/10 focus:border-accent/40 outline-none transition-all font-bold text-heading placeholder:text-muted/40"
+                className="w-full bg-surface dark:bg-page border border-border-soft rounded-2xl py-4 px-6 focus:ring-4 focus:ring-accent/10 focus:border-accent/40 outline-none transition-all font-bold text-heading dark:text-white placeholder:text-muted/40 dark:placeholder-gray-400"
               />
               {errors.name && <p className="text-red-500 text-[10px] font-bold uppercase tracking-wide px-2 mt-1">{errors.name}</p>}
             </div>
 
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-muted uppercase tracking-widest px-1">Email Address</label>
+              <label className="text-[10px] font-black text-muted dark:text-gray-300 uppercase tracking-widest px-1">Email Address</label>
               <input
                 type="email"
                 name="email"
                 placeholder="name@example.com"
                 value={formData.email}
                 onChange={handleChange}
-                className="w-full bg-surface dark:bg-page border border-border-soft rounded-2xl py-4 px-6 focus:ring-4 focus:ring-accent/10 focus:border-accent/40 outline-none transition-all font-bold text-heading placeholder:text-muted/40"
+                className="w-full bg-surface dark:bg-page border border-border-soft rounded-2xl py-4 px-6 focus:ring-4 focus:ring-accent/10 focus:border-accent/40 outline-none transition-all font-bold text-heading dark:text-white placeholder:text-muted/40 dark:placeholder-gray-400"
               />
               {errors.email && <p className="text-red-500 text-[10px] font-bold uppercase tracking-wide px-2 mt-1">{errors.email}</p>}
             </div>
 
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-muted uppercase tracking-widest px-1">Subject</label>
+              <label className="text-[10px] font-black text-muted dark:text-gray-300 uppercase tracking-widest px-1">Subject</label>
               <input
                 type="text"
                 name="subject"
                 placeholder="How can we help?"
                 value={formData.subject}
                 onChange={handleChange}
-                className="w-full bg-surface dark:bg-page border border-border-soft rounded-2xl py-4 px-6 focus:ring-4 focus:ring-accent/10 focus:border-accent/40 outline-none transition-all font-bold text-heading placeholder:text-muted/40"
+                className="w-full bg-surface dark:bg-page border border-border-soft rounded-2xl py-4 px-6 focus:ring-4 focus:ring-accent/10 focus:border-accent/40 outline-none transition-all font-bold text-heading dark:text-white placeholder:text-muted/40 dark:placeholder-gray-400"
               />
               {errors.subject && <p className="text-red-500 text-[10px] font-bold uppercase tracking-wide px-2 mt-1">{errors.subject}</p>}
             </div>
 
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-muted uppercase tracking-widest px-1">Your Message</label>
+              <label className="text-[10px] font-black text-muted dark:text-gray-300 uppercase tracking-widest px-1">Your Message</label>
               <textarea
                 name="message"
                 placeholder="Type your message here..."
                 value={formData.message}
                 onChange={handleChange}
-                className="w-full bg-surface dark:bg-page border border-border-soft rounded-2xl py-4 px-6 h-36 focus:ring-4 focus:ring-accent/10 focus:border-accent/40 outline-none transition-all font-bold text-heading placeholder:text-muted/40 resize-none leading-relaxed"
+                className="w-full bg-surface dark:bg-page border border-border-soft rounded-2xl py-4 px-6 h-36 focus:ring-4 focus:ring-accent/10 focus:border-accent/40 outline-none transition-all font-bold text-heading dark:text-white placeholder:text-muted/40 dark:placeholder-gray-400 resize-none leading-relaxed"
               />
               {errors.message && <p className="text-red-500 text-[10px] font-bold uppercase tracking-wide px-2 mt-1">{errors.message}</p>}
             </div>

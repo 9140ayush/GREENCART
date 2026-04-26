@@ -1,43 +1,100 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { categories } from '../assets/assets'
-import {useAppContext} from '../context/AppContext'
+import { useAppContext } from '../context/AppContext'
 
 const Categories = () => {
-  const {navigate} = useAppContext()
+  const { navigate, searchQuery } = useAppContext()
+  const [active, setActive] = useState(null)
+
   return (
-    <div className='mt-24 lg:mt-32'>
-        {/* Section Heading */}
-        <div className="flex items-center gap-3 mb-10">
-            <h2 className='text-2xl md:text-3xl font-black text-heading uppercase tracking-tight'>Shop by Category</h2>
-            <div className="flex-1 h-[2px] bg-border-soft rounded-full"></div>
-        </div>
+    <div style={{ marginTop: '48px' }}>
+      {/* Section heading */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '20px' }}>
+        <h2 style={{
+          fontFamily: 'var(--font-display)',
+          fontSize: 'clamp(1.3rem, 2.5vw, 1.8rem)',
+          fontWeight: 600,
+          color: 'var(--text-heading)',
+          margin: 0, whiteSpace: 'nowrap',
+          letterSpacing: '-0.01em',
+        }}>Shop by Category</h2>
+        <div style={{ flex: 1, height: '1.5px', background: 'var(--border-soft)', borderRadius: '999px' }} />
+      </div>
 
-        {/* Forced One-Row Grid for Desktop (7 items) */}
-        <div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-4 md:gap-5'>
-            {categories.map((category, index)=>(
-              <div key={index} 
-                className='group relative cursor-pointer p-5 py-8 rounded-[32px] flex flex-col justify-center items-center transition-all duration-500 hover:-translate-y-2 border border-transparent dark:hover:border-accent/40 overflow-hidden w-full' 
-                style={{backgroundColor: category.bgColor}}
-                onClick={()=>{
-                  navigate(`/products/${category.path.toLowerCase()}`);
-                  scrollTo(0, 0)
-                }}
-              >
-                {/* Responsive Dark Mode Overlay */}
-                <div className="absolute inset-0 bg-card/60 dark:bg-card/90 opacity-0 dark:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
-                
-                <div className="relative z-10 flex flex-col items-center gap-5">
-                  <div className="p-4 bg-white/40 dark:bg-surface/50 rounded-[24px] backdrop-blur-sm group-hover:bg-white dark:group-hover:bg-accent/10 transition-all duration-500 shadow-sm">
-                    <img src={category.image} alt={category.text} className='w-12 h-12 md:w-14 md:h-14 object-contain group-hover:scale-110 transition-transform duration-500 drop-shadow-md'/>
-                  </div>
-                  <p className='text-xs sm:text-sm font-black text-gray-800 dark:text-heading group-hover:text-accent transition-all tracking-wide text-center leading-tight h-8 flex items-center'>{category.text}</p>
-                </div>
+      {/* Horizontal scrollable pill row */}
+      <div style={{
+        display: 'flex',
+        gap: '10px',
+        overflowX: 'auto',
+        paddingBottom: '8px',
+        scrollbarWidth: 'none',
+        msOverflowStyle: 'none',
+      }} className="no-scrollbar">
+        {/* "All" pill */}
+        <button
+          onClick={() => { setActive(null); navigate('/products'); scrollTo(0, 0); }}
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: '6px',
+            padding: '9px 20px',
+            borderRadius: '999px',
+            border: `1.5px solid ${active === null ? '#3BB77E' : 'var(--border-main)'}`,
+            background: active === null ? '#3BB77E' : 'var(--bg-surface)',
+            color: active === null ? '#fff' : 'var(--text-body)',
+            fontSize: '13px', fontWeight: 600,
+            cursor: 'pointer',
+            flexShrink: 0,
+            transition: 'all 0.2s',
+            transform: active === null ? 'scale(1.04)' : 'scale(1)',
+          }}
+        >
+          🛒 <span>All</span>
+        </button>
 
-                {/* Refined Glow Effect */}
-                <div className="absolute -bottom-12 -right-12 w-32 h-32 bg-accent/10 blur-[50px] opacity-0 group-hover:opacity-100 transition-opacity"></div>
-              </div>
-            ))}
-        </div>
+        {categories.map((category, index) => {
+          const isActive = active === category.path;
+          return (
+            <button
+              key={index}
+              onClick={() => {
+                setActive(category.path)
+                navigate(`/products/${category.path.toLowerCase()}`)
+                scrollTo(0, 0)
+              }}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: '8px',
+                padding: '9px 20px',
+                borderRadius: '999px',
+                border: `1.5px solid ${isActive ? '#3BB77E' : 'var(--border-main)'}`,
+                background: isActive ? '#3BB77E' : 'var(--bg-surface)',
+                color: isActive ? '#fff' : 'var(--text-body)',
+                fontSize: '13px', fontWeight: 600,
+                cursor: 'pointer',
+                flexShrink: 0,
+                transition: 'all 0.2s',
+                transform: isActive ? 'scale(1.04)' : 'scale(1)',
+                boxShadow: isActive ? '0 2px 12px rgba(59, 183, 126,0.2)' : 'none',
+              }}
+              onMouseOver={e => {
+                if (!isActive) {
+                  e.currentTarget.style.background = '#D8EDDE';
+                  e.currentTarget.style.borderColor = '#3BB77E';
+                  e.currentTarget.style.color = '#3BB77E';
+                }
+              }}
+              onMouseOut={e => {
+                if (!isActive) {
+                  e.currentTarget.style.background = 'var(--bg-surface)';
+                  e.currentTarget.style.borderColor = 'var(--border-main)';
+                  e.currentTarget.style.color = 'var(--text-body)';
+                }
+              }}
+            >
+              <img src={category.image} alt={category.text} style={{ width: '20px', height: '20px', objectFit: 'contain' }} />
+              <span>{category.text}</span>
+            </button>
+          )
+        })}
+      </div>
     </div>
   )
 }

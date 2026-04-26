@@ -1,25 +1,28 @@
 import React, { useEffect, useState, useRef } from 'react'
-import { NavLink } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
 import { assets } from '../assets/assets'
-import {useAppContext} from '../context/AppContext'
+import { useAppContext } from '../context/AppContext'
 import toast from 'react-hot-toast'
 import DarkModeToggle from './DarkModeToggle'
 
 const Navbar = () => {
     const [open, setOpen] = useState(false)
-    const {user, setUser, setShowUserLogin, navigate, setSearchQuery, searchQuery, getCartCount, axios, products} = useAppContext();
-    
+    const [scrolled, setScrolled] = useState(false)
+    const [announcementVisible, setAnnouncementVisible] = useState(true)
+    const { user, setUser, setShowUserLogin, navigate, setSearchQuery, searchQuery, getCartCount, axios, products } = useAppContext();
+
     // Live Search States
     const [searchTerm, setSearchTerm] = useState('')
     const [suggestions, setSuggestions] = useState([])
     const [showSuggestions, setShowSuggestions] = useState(false)
     const [activeIndex, setActiveIndex] = useState(-1)
+    const [isListening, setIsListening] = useState(false)
     const suggestionsRef = useRef(null)
 
-    const logout = async ()=>{
+    const logout = async () => {
         try {
-            const {data} = await axios.get('/api/user/logout')
-            if(data.success) {
+            const { data } = await axios.get('/api/user/logout')
+            if (data.success) {
                 toast.success(data.message)
                 setUser(null);
                 navigate('/')
@@ -31,15 +34,21 @@ const Navbar = () => {
         }
     }
 
+    // Scroll shadow effect
+    useEffect(() => {
+        const handleScroll = () => setScrolled(window.scrollY > 10)
+        window.addEventListener('scroll', handleScroll, { passive: true })
+        return () => window.removeEventListener('scroll', handleScroll)
+    }, [])
+
     // Handle Search Logic with Debounce
     useEffect(() => {
         const delayDebounceFn = setTimeout(() => {
             if (searchTerm.trim().length > 0) {
-                const filtered = products.filter(product => 
+                const filtered = products.filter(product =>
                     product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                     product.category.toLowerCase().includes(searchTerm.toLowerCase())
-                ).slice(0, 8); // Limit results to 8
-                
+                ).slice(0, 8);
                 setSuggestions(filtered)
                 setShowSuggestions(true)
             } else {
@@ -47,7 +56,6 @@ const Navbar = () => {
                 setShowSuggestions(false)
             }
         }, 300)
-
         return () => clearTimeout(delayDebounceFn)
     }, [searchTerm, products])
 
@@ -87,135 +95,434 @@ const Navbar = () => {
         }
     }
 
+    // Voice Search
+    const startVoiceSearch = () => {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+        if (!SpeechRecognition) {
+            toast.error('Voice search not supported in this browser')
+            return
+        }
+        const recognition = new SpeechRecognition()
+        recognition.lang = 'en-IN'
+        recognition.continuous = false
+        recognition.interimResults = false
+        setIsListening(true)
+        recognition.start()
+        recognition.onresult = (e) => {
+            const transcript = e.results[0][0].transcript
+            setSearchTerm(transcript)
+            setSearchQuery(transcript)
+            navigate('/products')
+            setIsListening(false)
+        }
+        recognition.onerror = () => {
+            setIsListening(false)
+            toast.error('Could not hear you. Try again.')
+        }
+        recognition.onend = () => setIsListening(false)
+    }
+
+    const cartCount = getCartCount()
+
     return (
-        <nav className="flex items-center justify-between px-6 md:px-16 lg:px-24 xl:px-32 py-4 border-b border-border-main bg-card relative sticky top-0 z-[100]">
+        <div className="sticky top-0 z-[100]">
+            {/* Announcement Bar */}
+            {announcementVisible && (
+                <div style={{
+                    background: '#3BB77E',
+                    color: '#fff',
+                    textAlign: 'center',
+                    fontSize: '13px',
+                    fontFamily: 'var(--font-body)',
+                    fontWeight: 500,
+                    padding: '7px 16px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    position: 'relative',
+                }}>
+                    <span>🌿</span>
+                    <span>Free delivery on orders over <strong>₹499</strong> · Use code <strong>FRESH10</strong> for 10% off your first order</span>
+                    <button
+                        onClick={() => setAnnouncementVisible(false)}
+                        style={{
+                            position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)',
+                            background: 'none', border: 'none', color: 'rgba(255,255,255,0.6)',
+                            cursor: 'pointer', fontSize: '16px', lineHeight: 1, padding: '2px'
+                        }}
+                        aria-label="Close announcement"
+                    >✕</button>
+                </div>
+            )}
 
-            <NavLink onClick={()=> setOpen(false)} to='/'>
-                <img className='h-9 dark:brightness-200 contrast-125' src={assets.logo} alt="logo" />
-            </NavLink>
+            {/* Main Navbar */}
+            <nav style={{
+                background: 'rgba(250,250,248,0.92)',
+                backdropFilter: 'blur(16px)',
+                WebkitBackdropFilter: 'blur(16px)',
+                borderBottom: scrolled ? '1px solid var(--border-main)' : '1px solid transparent',
+                transition: 'border-color 0.3s ease, box-shadow 0.3s ease',
+                boxShadow: scrolled ? 'var(--shadow-sm)' : 'none',
+            }} className="flex items-center justify-between px-6 md:px-16 lg:px-24 xl:px-32 py-3 relative">
 
-            {/* Desktop Menu */}
-            <div className="hidden sm:flex items-center gap-8">
-                <NavLink className={({ isActive }) =>
-                `px-4 py-1.5 rounded-full border text-xs font-medium transition-all duration-300
-                ${isActive 
-                    ? "bg-primary text-white border-primary shadow-lg shadow-primary/20" 
-                    : "text-body border-border-main hover:bg-surface hover:border-accent/50"}`
-                } 
-                to='/seller'>Seller Dashboard</NavLink>
-                <NavLink to='/' className="text-body hover:text-accent transition-colors">Home</NavLink>
-                <NavLink to='/products' className="text-body hover:text-accent transition-colors">All Product</NavLink>
-                <NavLink to='/contact' className="text-body hover:text-accent transition-colors">Contact</NavLink>
+                {/* LOGO — GreenCart wordmark */}
+                <NavLink onClick={() => setOpen(false)} to='/' className="flex-shrink-0">
+                    <span style={{
+                        fontFamily: 'var(--font-display)',
+                        fontSize: '26px',
+                        fontWeight: 700,
+                        letterSpacing: '-0.02em',
+                        lineHeight: 1,
+                    }}>
+                        <span style={{ color: '#3BB77E' }}>Green</span><span style={{ color: 'var(--text-heading)' }}>Cart</span>
+                    </span>
+                </NavLink>
 
-                {/* Enhanced Search Bar */}
+                {/* Desktop Nav Links */}
+                <div className="hidden sm:flex items-center gap-6">
+                    <NavLink className={({ isActive }) =>
+                        `px-4 py-1.5 rounded-full border text-xs font-semibold transition-all duration-300
+                        ${isActive
+                            ? 'bg-primary text-white border-primary'
+                            : 'text-body border-border-main hover:bg-surface-2 hover:border-accent/50'}`
+                    }
+                        to='/seller'>Seller</NavLink>
+                    <NavLink to='/' className={({ isActive }) =>
+                        `text-sm font-medium transition-colors ${isActive ? 'text-primary font-semibold' : 'text-body hover:text-primary'}`
+                    }>Home</NavLink>
+                    <NavLink to='/products' className={({ isActive }) =>
+                        `text-sm font-medium transition-colors ${isActive ? 'text-primary font-semibold' : 'text-body hover:text-primary'}`
+                    }>Shop</NavLink>
+                    <NavLink to='/meal-planner' className={({ isActive }) =>
+                        `text-sm font-medium transition-colors ${isActive ? 'text-primary font-semibold' : 'text-body hover:text-primary'}`
+                    }>Meal Planner</NavLink>
+                    <NavLink to='/contact' className={({ isActive }) =>
+                        `text-sm font-medium transition-colors ${isActive ? 'text-primary font-semibold' : 'text-body hover:text-primary'}`
+                    }>Contact</NavLink>
+                </div>
+
+                {/* Search Bar */}
                 <div className="relative group/search" ref={suggestionsRef}>
-                    <div className="hidden lg:flex items-center text-sm gap-2 border border-border-main px-4 rounded-full bg-surface focus-within:border-accent/50 focus-within:ring-4 focus-within:ring-accent/5 transition-all w-64 xl:w-80 shadow-inner">
-                        <input 
+                    <div style={{
+                        display: 'none',
+                        alignItems: 'center',
+                        gap: '8px',
+                        background: 'var(--bg-surface)',
+                        border: '1.5px solid var(--border-main)',
+                        borderRadius: '999px',
+                        padding: '0 14px',
+                        boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.04)',
+                        transition: 'border-color 0.2s, box-shadow 0.2s',
+                        width: '260px',
+                    }} className="lg:!flex">
+                        {/* Search Icon */}
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
+                            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                        </svg>
+                        <input
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             onKeyDown={handleSearchSubmit}
                             onFocus={() => searchTerm.trim() && setShowSuggestions(true)}
-                            className="py-1.5 w-full bg-transparent outline-none placeholder-muted text-heading font-medium" 
-                            type="text" 
-                            placeholder="Search fresh items..." 
+                            style={{
+                                flex: 1, padding: '9px 0',
+                                background: 'transparent', border: 'none', outline: 'none',
+                                fontSize: '14px', color: 'var(--text-heading)',
+                                fontFamily: 'var(--font-body)',
+                            }}
+                            placeholder="Search fresh items..."
                         />
-                        <img src={assets.search_icon} alt="search" className='w-4 h-4 dark:invert opacity-60'/>
+                        {/* Voice Search Mic */}
+                        <button
+                            onClick={startVoiceSearch}
+                            title="Voice search"
+                            style={{
+                                background: 'none', border: 'none', cursor: 'pointer', padding: '4px',
+                                color: isListening ? '#3BB77E' : 'var(--text-muted)',
+                                transition: 'color 0.2s',
+                                flexShrink: 0,
+                            }}
+                        >
+                            {isListening ? (
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style={{ animation: 'badgePulse 1s infinite' }}>
+                                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                                    <path d="M19 10v2a7 7 0 0 1-14 0v-2" fill="none" stroke="currentColor" strokeWidth="2"/>
+                                    <line x1="12" y1="19" x2="12" y2="23" stroke="currentColor" strokeWidth="2"/>
+                                </svg>
+                            ) : (
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                                    <line x1="12" y1="19" x2="12" y2="23"/>
+                                </svg>
+                            )}
+                        </button>
                     </div>
 
                     {/* Autocomplete Dropdown */}
                     {showSuggestions && (
-                        <div className="absolute top-12 left-0 w-full bg-card border border-border-main shadow-2xl rounded-2xl overflow-hidden z-[150] animate-in fade-in slide-in-from-top-2 duration-300">
+                        <div style={{
+                            position: 'absolute', top: '52px', left: 0, width: '100%',
+                            background: 'var(--bg-card)',
+                            border: '1px solid var(--border-main)',
+                            borderRadius: '16px',
+                            boxShadow: 'var(--shadow-lg)',
+                            overflow: 'hidden',
+                            zIndex: 150,
+                            animation: 'fadeInUp 0.2s ease',
+                        }}>
                             {suggestions.length > 0 ? (
-                                <ul className="py-2 divide-y divide-border-soft">
+                                <ul style={{ padding: '8px 0', listStyle: 'none', margin: 0 }}>
                                     {suggestions.map((item, index) => (
-                                        <li 
+                                        <li
                                             key={item._id}
                                             onClick={() => handleSelectSuggestion(item)}
                                             onMouseEnter={() => setActiveIndex(index)}
-                                            className={`px-4 py-3 flex items-center gap-4 cursor-pointer transition-all
-                                                ${index === activeIndex ? 'bg-surface text-accent' : 'text-body hover:bg-surface/50'}
-                                            `}
+                                            style={{
+                                                padding: '10px 16px',
+                                                display: 'flex', alignItems: 'center', gap: '12px',
+                                                cursor: 'pointer',
+                                                background: index === activeIndex ? 'var(--bg-surface)' : 'transparent',
+                                                transition: 'background 0.15s',
+                                            }}
                                         >
-                                            <div className="w-10 h-10 bg-surface rounded-xl p-1.5 border border-border-soft flex items-center justify-center shrink-0">
-                                                <img src={item.image[0]} className="max-w-full max-h-full object-contain" alt="" />
+                                            <div style={{
+                                                width: '36px', height: '36px',
+                                                background: 'var(--bg-surface)',
+                                                borderRadius: '10px',
+                                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                flexShrink: 0, border: '1px solid var(--border-soft)',
+                                            }}>
+                                                <img src={item.image[0]} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} alt="" />
                                             </div>
-                                            <div className="flex flex-col overflow-hidden">
-                                                <span className="text-sm font-black truncate text-heading leading-tight">{item.name}</span>
-                                                <span className="text-[9px] text-muted uppercase font-black tracking-[0.15em]">{item.category}</span>
+                                            <div style={{ overflow: 'hidden' }}>
+                                                <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-heading)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name}</div>
+                                                <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 600 }}>{item.category}</div>
                                             </div>
-                                            {index === activeIndex && (
-                                                <span className="ml-auto text-[10px] font-bold text-accent opacity-60">SELECT</span>
-                                            )}
                                         </li>
                                     ))}
                                 </ul>
                             ) : (
-                                <div className="p-8 text-center space-y-2">
-                                    <p className="text-2xl">🥦</p>
-                                    <p className="text-[10px] font-black text-muted uppercase tracking-[0.2em]">No items found for "{searchTerm}"</p>
+                                <div style={{ padding: '24px', textAlign: 'center' }}>
+                                    <p style={{ fontSize: '24px' }}>🥦</p>
+                                    <p style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.15em' }}>No results for "{searchTerm}"</p>
                                 </div>
                             )}
                         </div>
                     )}
                 </div>
 
-                <DarkModeToggle />
+                {/* Right Controls */}
+                <div className="hidden sm:flex items-center gap-4">
+                    <DarkModeToggle />
 
-                <div onClick={()=> navigate("/cart")} className="relative cursor-pointer group">
-                    <img src={assets.nav_cart_icon} alt="cart" className='w-6 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all dark:invert'/>
-                    <button className="absolute -top-2 -right-3 text-[10px] p-1 font-bold leading-none text-white bg-accent min-w-[18px] min-h-[18px] flex items-center justify-center rounded-full shadow-md shadow-accent/20 transition-transform active:scale-90">{getCartCount()}</button>
-                </div>
-
-                {!user ? (<button onClick={()=> setShowUserLogin(true)} className="cursor-pointer px-8 py-2 bg-primary hover:bg-primary-dull transition-all text-white rounded-full font-medium shadow-md shadow-primary/20 active:scale-95">
-                    Login
-                </button>) 
-                :
-                (
-                    <div className='relative group'>
-                        <img src={assets.profile_icon} alt="" className='w-10 cursor-pointer hover:ring-2 hover:ring-accent/20 rounded-full transition-all'/>
-                        <ul className='hidden group-hover:block absolute top-12 right-0 bg-card shadow-xl border border-border-main py-2.5 w-40 rounded-xl text-sm z-40 animate-in fade-in slide-in-from-top-2 duration-200'>
-                            <li onClick={()=> navigate("my-orders")} className='p-2.5 pl-4 hover:bg-surface text-body hover:text-accent cursor-pointer transition-colors'>My Orders</li>
-                            <li onClick={logout} className='p-2.5 pl-4 hover:bg-surface text-body hover:text-red-500 cursor-pointer transition-colors border-t border-border-soft'>Logout</li>
-                        </ul>
+                    {/* Cart */}
+                    <div
+                        onClick={() => navigate("/cart")}
+                        style={{ position: 'relative', cursor: 'pointer' }}
+                        className="group"
+                    >
+                        <img src={assets.nav_cart_icon} alt="cart" style={{ width: '24px', opacity: 0.8, transition: 'all 0.2s' }} className="group-hover:opacity-100 group-hover:scale-110 dark:invert" />
+                        {cartCount > 0 && (
+                            <span style={{
+                                position: 'absolute', top: '-8px', right: '-10px',
+                                background: '#3BB77E',
+                                color: '#fff',
+                                fontSize: '10px',
+                                fontWeight: 700,
+                                minWidth: '18px', minHeight: '18px',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                borderRadius: '999px',
+                                boxShadow: '0 2px 6px rgba(59,183,126,0.4)',
+                                animation: 'badgePulse 0.3s ease',
+                            }}>{cartCount}</span>
+                        )}
                     </div>
-                )}
-            </div>
-            
-            <div className='flex items-center gap-4 sm:hidden'>
-                <DarkModeToggle />
-                <div onClick={()=> navigate("/cart")} className="relative cursor-pointer">
-                    <img src={assets.nav_cart_icon} alt="cart" className='w-6 opacity-80 dark:invert'/>
-                    <button className="absolute -top-2 -right-3 text-[10px] font-bold text-white bg-primary w-[18px] h-[18px] rounded-full flex items-center justify-center">{getCartCount()}</button>
-                </div>
-                <button onClick={() => open ? setOpen(false) : setOpen(true)} aria-label="Menu" className="p-1 hover:bg-surface rounded-lg transition-colors">
-                    {/* Menu Icon SVG */}
-                    <img src={assets.menu_icon} alt="menu" className="dark:invert"/>
-                </button>
-            </div>
 
-            {/* Mobile Menu */}
-            { open && (
-                <div className="fixed top-[72px] left-0 w-full bg-card/95 backdrop-blur-md shadow-2xl py-6 flex flex-col items-start gap-4 px-6 text-sm md:hidden z-50 border-b border-border-main animate-in slide-in-from-top-4 duration-300">
-                    <NavLink to="/" onClick={()=>setOpen(false)} className="text-heading font-medium text-lg">Home</NavLink>
-                    <NavLink to="/products" onClick={()=>setOpen(false)} className="text-heading font-medium text-lg">All Product</NavLink>
-                    {user &&
-                    <NavLink to="/products" onClick={()=>setOpen(false)} className="text-heading font-medium text-lg">My Orders</NavLink>
-                    }
-                    <NavLink to="/contact" onClick={()=>setOpen(false)} className="text-heading font-medium text-lg">Contact</NavLink>
-                    
+                    {/* Auth */}
                     {!user ? (
-                        <button onClick={()=>{setOpen(false);setShowUserLogin(true);}} className="w-full cursor-pointer px-6 py-3 mt-4 bg-primary hover:bg-primary-dull transition text-white rounded-xl text-lg font-bold">
-                        Login
-                        </button>
+                        <button
+                            onClick={() => setShowUserLogin(true)}
+                            style={{
+                                padding: '8px 22px',
+                                background: '#3BB77E',
+                                color: '#fff',
+                                border: 'none',
+                                borderRadius: '999px',
+                                fontFamily: 'var(--font-body)',
+                                fontWeight: 600,
+                                fontSize: '14px',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s',
+                                boxShadow: '0 2px 8px rgba(59, 183, 126,0.3)',
+                            }}
+                            onMouseOver={e => e.currentTarget.style.background = '#29A56C'}
+                            onMouseOut={e => e.currentTarget.style.background = '#3BB77E'}
+                        >Login</button>
                     ) : (
-                        <button onClick={logout} className="w-full cursor-pointer px-6 py-3 mt-4 bg-surface hover:bg-red-500/10 border border-border-main text-heading hover:text-red-500 transition rounded-xl text-lg font-bold">
-                        Logout
-                        </button>
+                        <div style={{ position: 'relative' }} className="group">
+                            <div style={{
+                                width: '38px', height: '38px',
+                                borderRadius: '50%',
+                                background: '#3BB77E',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                cursor: 'pointer',
+                                color: '#fff',
+                                fontSize: '15px',
+                                fontWeight: 700,
+                                fontFamily: 'var(--font-display)',
+                                transition: 'all 0.2s',
+                                border: '2px solid transparent',
+                            }} className="group-hover:border-accent/30">
+                                {user.name?.[0]?.toUpperCase() || '👤'}
+                            </div>
+                            <ul style={{
+                                display: 'none',
+                                position: 'absolute', top: '48px', right: 0,
+                                background: 'var(--bg-card)',
+                                border: '1px solid var(--border-main)',
+                                borderRadius: '14px',
+                                padding: '8px 0',
+                                width: '160px',
+                                boxShadow: 'var(--shadow-lg)',
+                                zIndex: 40,
+                                listStyle: 'none',
+                                margin: 0,
+                                animation: 'fadeInUp 0.2s ease',
+                            }} className="group-hover:!block">
+                                <li onClick={() => navigate("my-orders")} style={{
+                                    padding: '10px 16px', cursor: 'pointer',
+                                    fontSize: '14px', color: 'var(--text-body)', fontWeight: 500,
+                                    transition: 'all 0.15s',
+                                }} onMouseOver={e => { e.currentTarget.style.background = 'var(--bg-surface)'; e.currentTarget.style.color = '#3BB77E' }}
+                                    onMouseOut={e => { e.currentTarget.style.background = ''; e.currentTarget.style.color = 'var(--text-body)' }}>
+                                    My Orders
+                                </li>
+                                <li onClick={logout} style={{
+                                    padding: '10px 16px', cursor: 'pointer',
+                                    fontSize: '14px', color: 'var(--text-body)', fontWeight: 500,
+                                    borderTop: '1px solid var(--border-soft)',
+                                    transition: 'all 0.15s',
+                                }} onMouseOver={e => { e.currentTarget.style.background = 'var(--bg-surface)'; e.currentTarget.style.color = '#C0392B' }}
+                                    onMouseOut={e => { e.currentTarget.style.background = ''; e.currentTarget.style.color = 'var(--text-body)' }}>
+                                    Logout
+                                </li>
+                            </ul>
+                        </div>
                     )}
                 </div>
-            )}
 
-        </nav>
+                {/* Mobile Controls */}
+                <div className='flex items-center gap-3 sm:hidden'>
+                    <DarkModeToggle />
+                    <div onClick={() => navigate("/cart")} style={{ position: 'relative', cursor: 'pointer' }}>
+                        <img src={assets.nav_cart_icon} alt="cart" style={{ width: '24px', opacity: 0.8 }} className="dark:invert" />
+                        {cartCount > 0 && (
+                            <span style={{
+                                position: 'absolute', top: '-8px', right: '-10px',
+                                background: '#3BB77E', color: '#fff',
+                                fontSize: '10px', fontWeight: 700,
+                                minWidth: '18px', minHeight: '18px',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                borderRadius: '999px',
+                            }}>{cartCount}</span>
+                        )}
+                    </div>
+                    <button
+                        onClick={() => setOpen(!open)}
+                        aria-label="Menu"
+                        style={{ padding: '6px', background: 'var(--bg-surface)', border: '1px solid var(--border-main)', borderRadius: '8px', cursor: 'pointer' }}
+                    >
+                        <img src={assets.menu_icon} alt="menu" style={{ width: '20px', display: 'block' }} className="dark:invert" />
+                    </button>
+                </div>
+
+                {/* Mobile Slide-over Menu */}
+                {open && (
+                    <div style={{
+                        position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                        zIndex: 200, display: 'flex',
+                    }}>
+                        {/* Backdrop */}
+                        <div
+                            onClick={() => setOpen(false)}
+                            style={{ flex: 1, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)' }}
+                        />
+                        {/* Drawer */}
+                        <div style={{
+                            width: '280px',
+                            background: 'var(--bg-card)',
+                            padding: '32px 24px',
+                            display: 'flex', flexDirection: 'column', gap: '8px',
+                            boxShadow: 'var(--shadow-lg)',
+                            animation: 'fadeInUp 0.25s ease',
+                            overflowY: 'auto',
+                        }}>
+                            {/* Close */}
+                            <button
+                                onClick={() => setOpen(false)}
+                                style={{ alignSelf: 'flex-end', background: 'none', border: 'none', fontSize: '22px', cursor: 'pointer', color: 'var(--text-muted)', marginBottom: '16px' }}
+                            >✕</button>
+
+                            {/* Logo */}
+                            <span style={{ fontFamily: 'var(--font-display)', fontSize: '28px', fontWeight: 700, marginBottom: '24px' }}>
+                                <span style={{ color: '#3BB77E' }}>Green</span><span style={{ color: 'var(--text-heading)' }}>Cart</span>
+                            </span>
+
+                            {[
+                                { to: '/', label: 'Home' },
+                                { to: '/products', label: 'Shop All' },
+                                { to: '/meal-planner', label: 'Meal Planner' },
+                                { to: '/contact', label: 'Contact' },
+                                ...(user ? [{ to: '/my-orders', label: 'My Orders' }] : []),
+                                { to: '/seller', label: 'Seller Dashboard' },
+                            ].map(({ to, label }) => (
+                                <NavLink
+                                    key={to}
+                                    to={to}
+                                    onClick={() => setOpen(false)}
+                                    style={({ isActive }) => ({
+                                        padding: '12px 16px',
+                                        borderRadius: '12px',
+                                        fontWeight: 600,
+                                        fontSize: '16px',
+                                        color: isActive ? '#3BB77E' : 'var(--text-heading)',
+                                        background: isActive ? '#D8EDDE' : 'transparent',
+                                        textDecoration: 'none',
+                                        transition: 'all 0.15s',
+                                    })}
+                                >{label}</NavLink>
+                            ))}
+
+                            <div style={{ marginTop: '24px', paddingTop: '24px', borderTop: '1px solid var(--border-main)' }}>
+                                {!user ? (
+                                    <button
+                                        onClick={() => { setOpen(false); setShowUserLogin(true); }}
+                                        style={{
+                                            width: '100%', padding: '14px',
+                                            background: '#3BB77E', color: '#fff',
+                                            border: 'none', borderRadius: '12px',
+                                            fontSize: '16px', fontWeight: 700, cursor: 'pointer',
+                                        }}
+                                    >Login</button>
+                                ) : (
+                                    <button
+                                        onClick={logout}
+                                        style={{
+                                            width: '100%', padding: '14px',
+                                            background: 'var(--bg-surface)', color: '#C0392B',
+                                            border: '1px solid var(--border-main)', borderRadius: '12px',
+                                            fontSize: '16px', fontWeight: 700, cursor: 'pointer',
+                                        }}
+                                    >Logout</button>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </nav>
+        </div>
     )
 }
 

@@ -1,9 +1,8 @@
 import React from 'react'
 import Navbar from './components/Navbar'
-import MainBanner from './components/MainBanner'
 import { Route, Routes, useLocation } from 'react-router-dom'
 import Home from './pages/Home'
-import {Toaster} from "react-hot-toast"
+import { Toaster } from "react-hot-toast"
 import Footer from './components/Footer'
 import { useAppContext } from './context/AppContext'
 import Login from './components/Login'
@@ -20,38 +19,66 @@ import ProductList from './pages/seller/ProductList'
 import Orders from './pages/seller/Orders'
 import Loading from './components/Loading'
 import Contact from './pages/Contact'
+import MealPlanner from './pages/MealPlanner'
+import FloatingChatbot from './components/Chatbot/FloatingChatbot'
 
 const App = () => {
-  
-  const isSellerPath = useLocation().pathname.includes("seller");
-  const {showUserLogin, isSeller} = useAppContext();
+  const location = useLocation();
+  const isSellerPath = location.pathname.includes("seller");
+  const { showUserLogin, isSeller } = useAppContext();
+
+  React.useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+  }, [location.pathname]);
 
   return (
-    <div className='min-h-screen text-body bg-page'>
-      {isSellerPath ?  null : <Navbar/>}
-      {showUserLogin ? <Login/> : null}
-      
-      <Toaster />
+    <div style={{ minHeight: '100vh', background: 'var(--bg-page)', color: 'var(--text-body)' }}>
+      {isSellerPath ? null : <Navbar />}
+      {showUserLogin ? <Login /> : null}
 
-      <div className={`${isSellerPath ? "" : "px-6 md:px-16 lg:px-24 xl:px-32"}`}>
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          style: {
+            background: 'var(--bg-card)',
+            color: 'var(--text-heading)',
+            border: '1px solid var(--border-main)',
+            borderRadius: '12px',
+            fontFamily: 'var(--font-body)',
+            fontSize: '14px',
+            fontWeight: 500,
+            boxShadow: 'var(--shadow-md)',
+          },
+          success: {
+            iconTheme: { primary: '#3BB77E', secondary: '#D8EDDE' },
+          },
+        }}
+      />
+
+      <div className={isSellerPath ? '' : 'px-6 md:px-16 lg:px-24 xl:px-32'}>
         <Routes>
-          <Route path='/' element={<Home/>} />
-          <Route path='/products' element={<AllProducts/>} />
-          <Route path='/products/:category' element={<ProductCategory/>} />
-          <Route path='/products/:category/:id' element={<ProductDetails/>} />
-          <Route path='/cart' element={<Cart/>} />
-          <Route path='/contact' element={<Contact/>} />
-          <Route path='/add-address' element={<AddAddress/>} />
-          <Route path='/my-orders' element={<MyOrders/>} />
-          <Route path='/loader' element={<Loading/>} />
-          <Route path='/seller' element={isSeller ? <SellerLayout/> : <SellerLogin/>}>
-            <Route index element={isSeller ? <AddProduct/> : null} />
-            <Route path='product-list' element={<ProductList/>} />
-            <Route path='orders' element={<Orders/>} />
+          <Route path='/' element={<Home />} />
+          <Route path='/products' element={<AllProducts />} />
+          <Route path='/products/:category' element={<ProductCategory />} />
+          <Route path='/products/:category/:id' element={<ProductDetails />} />
+          <Route path='/cart' element={<Cart />} />
+          <Route path='/contact' element={<Contact />} />
+          <Route path='/add-address' element={<AddAddress />} />
+          <Route path='/my-orders' element={<MyOrders />} />
+          <Route path='/meal-planner' element={<MealPlanner />} />
+          <Route path='/loader' element={<Loading />} />
+          <Route path='/seller' element={isSeller ? <SellerLayout /> : <SellerLogin />}>
+            <Route index element={isSeller ? <AddProduct /> : null} />
+            <Route path='product-list' element={<ProductList />} />
+            <Route path='orders' element={<Orders />} />
           </Route>
         </Routes>
       </div>
+
       {!isSellerPath && <Footer />}
+
+      {/* Floating AI Chatbot — always visible on non-seller pages */}
+      {!isSellerPath && <FloatingChatbot />}
     </div>
   )
 }

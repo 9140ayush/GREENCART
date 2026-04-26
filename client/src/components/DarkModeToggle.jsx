@@ -6,9 +6,11 @@ const DarkModeToggle = () => {
   useEffect(() => {
     if (theme === 'dark') {
       document.documentElement.setAttribute('data-theme', 'dark');
+      document.documentElement.classList.add('dark');
       localStorage.setItem('gc-theme', 'dark');
     } else {
       document.documentElement.removeAttribute('data-theme');
+      document.documentElement.classList.remove('dark');
       localStorage.setItem('gc-theme', 'light');
     }
   }, [theme]);

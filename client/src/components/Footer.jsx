@@ -51,7 +51,15 @@ const Footer = () => {
             <div className="px-6 md:px-16 lg:px-24 xl:px-32">
                 <div className="flex flex-col md:flex-row items-start justify-between gap-16 py-20 border-b border-border-soft">
                     <div className="max-w-md">
-                        <img className="w-40 md:w-36 dark:brightness-200 contrast-125 mb-8" src={assets.logo} alt="logo" />
+                        <div className="mb-8" style={{
+                            fontFamily: 'var(--font-display)',
+                            fontSize: '32px',
+                            fontWeight: 700,
+                            letterSpacing: '-0.02em',
+                            lineHeight: 1,
+                        }}>
+                            <span style={{ color: '#3BB77E' }}>Green</span><span style={{ color: 'var(--text-heading)' }}>Cart</span>
+                        </div>
                         <p className="text-body font-medium leading-relaxed opacity-80">
                             We deliver farm-fresh groceries and gourmet snacks straight to your door. Trusted by thousands of families, we're on a mission to make healthy shopping effortless, premium, and affordable.
                         </p>
